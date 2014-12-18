@@ -11,7 +11,7 @@ namespace CSharpDuckType.Test
             void Bar();
         }
 
-        class Baz
+        public class Baz
         {
             public void Bar()
             {
