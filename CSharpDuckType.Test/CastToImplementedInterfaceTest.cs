@@ -18,7 +18,7 @@ namespace CSharpDuckType.Test
         }
 
         [TestMethod]
-        public void TestMethod1()
+        public void CastToImplementedType()
         {
             Baz baz = new Baz();
             Foo foo = DuckType.Cast<Foo>(baz);
