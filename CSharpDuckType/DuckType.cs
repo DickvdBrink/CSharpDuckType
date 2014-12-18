@@ -10,6 +10,16 @@ namespace CSharpDuckType
     {
         public static T Cast<T>(object duck)
         {
+            return convert<T>(typeof(T), duck);
+        }
+
+        private static T convert<T>(Type toType, object duck)
+        {
+            Type duckType = duck.GetType();
+            if (toType.IsAssignableFrom(duckType))
+            {
+                return (T)duck;
+            }
             return default(T);
         }
     }

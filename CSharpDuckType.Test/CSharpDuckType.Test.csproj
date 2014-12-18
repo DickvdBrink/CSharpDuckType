@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="MethodNoParameterTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CastToImplementedInterfaceTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CSharpDuckType\CSharpDuckType.csproj">

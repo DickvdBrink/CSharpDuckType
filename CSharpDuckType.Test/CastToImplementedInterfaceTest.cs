@@ -4,14 +4,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CSharpDuckType.Test
 {
     [TestClass]
-    public class MethodNoParameterTest
+    public class CastToImplementedInterfaceTest
     {
         interface Foo
         {
             void Bar();
         }
-
-        class Baz
+        class Baz : Foo
         {
             public void Bar()
             {
@@ -19,11 +18,11 @@ namespace CSharpDuckType.Test
         }
 
         [TestMethod]
-        public void EmptyMethodNoReturnType()
+        public void TestMethod1()
         {
             Baz baz = new Baz();
             Foo foo = DuckType.Cast<Foo>(baz);
-            Assert.AreNotSame(baz, foo);
+            Assert.AreSame(baz, foo);
             foo.Bar();
         }
     }
