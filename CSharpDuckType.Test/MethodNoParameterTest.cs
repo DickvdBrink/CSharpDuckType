@@ -6,7 +6,7 @@ namespace CSharpDuckType.Test
     [TestClass]
     public class MethodNoParameterTest
     {
-        interface Foo
+        public interface Foo
         {
             void Bar();
         }
