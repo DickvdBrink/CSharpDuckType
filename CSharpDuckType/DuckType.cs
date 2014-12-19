@@ -17,7 +17,7 @@ namespace CSharpDuckType
             {
                 return (T)duck;
             }
-            return convert<T>(toType, duck);
+            return createProxyImplementation<T>(toType, duck);
         }
 
         private static bool canCast(Type toType, object duck)
@@ -26,7 +26,13 @@ namespace CSharpDuckType
             return toType.IsAssignableFrom(duckType);
         }
 
-        private static T convert<T>(Type toType, object duck)
+        private static T createProxyImplementation<T> (Type toType, object duck)
+        {
+            var type = createProxyType(toType, duck);
+            return (T)Activator.CreateInstance(type, duck);
+        }
+
+        private static Type createProxyType(Type toType, object duck)
         {
             Type duckType = duck.GetType();
 
@@ -35,16 +41,16 @@ namespace CSharpDuckType
                 an,
                 AssemblyBuilderAccess.RunAndSave);
             ModuleBuilder mb = ab.DefineDynamicModule(an.Name, an.Name + ".dll");
-            TypeBuilder tp = mb.DefineType(duckType.Name + "Ducked",TypeAttributes.Public);
-            tp.AddInterfaceImplementation(toType);
+            TypeBuilder typeBuilder = mb.DefineType(duckType.Name + "Ducked",TypeAttributes.Public);
+            typeBuilder.AddInterfaceImplementation(toType);
 
-            FieldBuilder fb = tp.DefineField("priv_proxy", duckType, FieldAttributes.Private);
+            FieldBuilder privProxyField = typeBuilder.DefineField("priv_proxy", duckType, FieldAttributes.Private);
 
-            ConstructorBuilder cb = tp.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { duckType });
-            ILGenerator cbIL = cb.GetILGenerator();
+            ConstructorBuilder constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { duckType });
+            ILGenerator cbIL = constructorBuilder.GetILGenerator();
             cbIL.Emit(OpCodes.Ldarg_0);
             cbIL.Emit(OpCodes.Ldarg_1);
-            cbIL.Emit(OpCodes.Stfld, fb);
+            cbIL.Emit(OpCodes.Stfld, privProxyField);
             cbIL.Emit(OpCodes.Ret);
 
             MethodInfo[] methods = toType.GetMethods();
@@ -52,12 +58,13 @@ namespace CSharpDuckType
             foreach(var methodInfo in methods)
             {
                 var instanceMethod = findMatchingMethod(methodInfo, duckType);
-
-                implementMethod(tp, fb, methodInfo, instanceMethod);
+                implementMethod(typeBuilder, privProxyField, methodInfo, instanceMethod);
             }
-            var newType = tp.CreateType();
+
             //ab.Save(an.Name + ".dll");
-            return (T)Activator.CreateInstance(newType, duck);
+
+            var newType = typeBuilder.CreateType();
+            return newType;
         }
 
         private static MethodInfo findMatchingMethod(MethodInfo method, Type searchType)
@@ -73,16 +80,16 @@ namespace CSharpDuckType
             return null;
         }
 
-        private static void implementMethod(TypeBuilder tp, FieldInfo f, MethodInfo interfaceMethod, MethodInfo implementation)
+        private static void implementMethod(TypeBuilder typeBuilder, FieldInfo privProxyField, MethodInfo interfaceMethod, MethodInfo implementation)
         {
             ParameterInfo[] parameters = interfaceMethod.GetParameters();
             var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
-            MethodBuilder meth = tp.DefineMethod(interfaceMethod.Name, MethodAttributes.Public |
+            MethodBuilder meth = typeBuilder.DefineMethod(interfaceMethod.Name, MethodAttributes.Public |
                 MethodAttributes.Virtual | MethodAttributes.Final,
                 CallingConventions.HasThis, interfaceMethod.ReturnType, paramTypes);
             ILGenerator methIL = meth.GetILGenerator();
             methIL.Emit(OpCodes.Ldarg_0);
-            methIL.Emit(OpCodes.Ldfld, f);
+            methIL.Emit(OpCodes.Ldfld, privProxyField);
             for(int i = 1; i <= parameters.Length; i++)
             {
                 methIL.Emit(OpCodes.Ldarg, i);
