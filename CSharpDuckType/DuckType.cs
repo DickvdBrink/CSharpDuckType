@@ -75,12 +75,18 @@ namespace CSharpDuckType
 
         private static void implementMethod(TypeBuilder tp, FieldInfo f, MethodInfo interfaceMethod, MethodInfo implementation)
         {
+            ParameterInfo[] parameters = interfaceMethod.GetParameters();
+            var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
             MethodBuilder meth = tp.DefineMethod(interfaceMethod.Name, MethodAttributes.Public |
-                MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-                CallingConventions.HasThis, interfaceMethod.ReturnType, null);
+                MethodAttributes.Virtual | MethodAttributes.Final,
+                CallingConventions.HasThis, interfaceMethod.ReturnType, paramTypes);
             ILGenerator methIL = meth.GetILGenerator();
             methIL.Emit(OpCodes.Ldarg_0);
             methIL.Emit(OpCodes.Ldfld, f);
+            for(int i = 1; i <= parameters.Length; i++)
+            {
+                methIL.Emit(OpCodes.Ldarg, i);
+            }
             methIL.Emit(OpCodes.Callvirt, implementation);
             methIL.Emit(OpCodes.Ret);
         }
