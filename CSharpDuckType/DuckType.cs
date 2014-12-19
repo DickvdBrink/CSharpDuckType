@@ -51,18 +51,33 @@ namespace CSharpDuckType
 
             foreach(var methodInfo in methods)
             {
-                implementMethod(tp, fb, methodInfo, duckType.GetMethod("Bar"));
+                var instanceMethod = findMatchingMethod(methodInfo, duckType);
+
+                implementMethod(tp, fb, methodInfo, instanceMethod);
             }
             var newType = tp.CreateType();
             //ab.Save(an.Name + ".dll");
-            return (T)Activator.CreateInstance(newType, duck); ;
+            return (T)Activator.CreateInstance(newType, duck);
+        }
+
+        private static MethodInfo findMatchingMethod(MethodInfo method, Type searchType)
+        {
+            var methods = searchType.GetMethods();
+            foreach(MethodInfo m in methods)
+            {
+                if (m.Name == method.Name)
+                {
+                    return m;
+                }
+            }
+            return null;
         }
 
         private static void implementMethod(TypeBuilder tp, FieldInfo f, MethodInfo interfaceMethod, MethodInfo implementation)
         {
             MethodBuilder meth = tp.DefineMethod(interfaceMethod.Name, MethodAttributes.Public |
                 MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-                CallingConventions.HasThis);
+                CallingConventions.HasThis, interfaceMethod.ReturnType, null);
             ILGenerator methIL = meth.GetILGenerator();
             methIL.Emit(OpCodes.Ldarg_0);
             methIL.Emit(OpCodes.Ldfld, f);
