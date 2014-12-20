@@ -12,7 +12,10 @@ namespace CSharpDuckType.Test
             string Bar(string x);
             int Bar(int i);
             bool Bar(bool b);
+        }
 
+        public interface Quux
+        {
             string Qux(string x);
             string Qux(int i);
         }
@@ -54,7 +57,7 @@ namespace CSharpDuckType.Test
         public void OverloadTestSameReturnTypes()
         {
             Baz baz = new Baz();
-            Foo foo = DuckType.Cast<Foo>(baz);
+            Quux foo = DuckType.Cast<Quux>(baz);
             Assert.AreNotSame(baz, foo);
 
             Assert.AreEqual("Hello World!", foo.Qux("Hello World!"));
