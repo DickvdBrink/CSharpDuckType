@@ -69,18 +69,33 @@ namespace CSharpDuckType
 
         private static MethodInfo findMatchingMethod(MethodInfo method, Type searchType)
         {
-            var duckMethodParameters = method.GetParameters();
+            ParameterInfo[] duckMethodParameters = method.GetParameters();
             var returnType = method.ReturnType;
-            var methods = searchType.GetMethods();
+            MethodInfo[] methods = searchType.GetMethods();
 
             foreach(MethodInfo m in methods)
             {
+                ParameterInfo[] methodParameters = null;
                 // TODO: Check parameter types
                 if (m.Name == method.Name &&
                     m.ReturnType == method.ReturnType &&
-                    m.GetParameters().Length == duckMethodParameters.Length)
+                    (methodParameters = m.GetParameters()).Length == duckMethodParameters.Length)
                 {
-                    return m;
+                    bool isParameterMatch = true;
+                    for(int i = 0; i < duckMethodParameters.Length; i++)
+                    {
+                        ParameterInfo p1 = duckMethodParameters[i];
+                        ParameterInfo p2 = methodParameters[i];
+                        if (p1.ParameterType != p2.ParameterType)
+                        {
+                            isParameterMatch = false;
+                            break;
+                        }
+                    }
+                    if(isParameterMatch)
+                    {
+                        return m;
+                    }
                 }
             }
             return null;
