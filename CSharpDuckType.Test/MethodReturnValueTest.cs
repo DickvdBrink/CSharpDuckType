@@ -31,7 +31,6 @@ namespace CSharpDuckType.Test
             Assert.AreNotSame(baz, foo);
         }
 
-
         [TestMethod]
         public void TestBool()
         {
