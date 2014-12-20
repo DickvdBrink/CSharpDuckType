@@ -69,10 +69,16 @@ namespace CSharpDuckType
 
         private static MethodInfo findMatchingMethod(MethodInfo method, Type searchType)
         {
+            var duckMethodParameters = method.GetParameters();
+            var returnType = method.ReturnType;
             var methods = searchType.GetMethods();
+
             foreach(MethodInfo m in methods)
             {
-                if (m.Name == method.Name)
+                // TODO: Check parameter types
+                if (m.Name == method.Name &&
+                    m.ReturnType == method.ReturnType &&
+                    m.GetParameters().Length == duckMethodParameters.Length)
                 {
                     return m;
                 }
